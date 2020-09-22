@@ -21,7 +21,7 @@ class SmsDev
      *
      * @var string
      */
-    private $_apiUrl = 'https://api.smsdev.com.br';
+    private $_apiUrl = 'https://api.smsdev.com.br/v1';
 
     /**
      * API key.
@@ -35,14 +35,14 @@ class SmsDev
      *
      * @object \DateTimeZone
      */
-    private $_apiTimeZone;
+    protected $_apiTimeZone;
 
     /**
      * Date format to be used in all date functions.
      *
      * @var string
      */
-    private $_dateFormat = 'U';
+    protected $_dateFormat = 'U';
 
     /**
      * Query string to be sent to the API as a search filter.
@@ -51,7 +51,7 @@ class SmsDev
      * 
      * @var array
      */
-    private $_query = [
+    protected $_query = [
         'status' => 1
     ];
 
@@ -60,7 +60,7 @@ class SmsDev
      *
      * @var array
      */
-    private $_result = [];
+    protected $_result = [];
 
     /**
      * Creates a new SmsDev instance with an API key and sets the default API timezone.
@@ -83,22 +83,33 @@ class SmsDev
      *
      * @param int $number Recipient's number.
      * @param string $message SMS message.
+     * @param string|bool $date
+     * @param string|bool $time
+     * @param bool $flash
      * @return bool true if the API accepted the request.
      */
-    public function send($number, $message)
+    public function send($number, $message, $date = false, $time = false, $flash = false)
     {
         $this->_result = [];
+
+        $this->_query = [
+            'key'    => $this->_apiKey,
+            'type'   => 9,
+            'number' => $number,
+            'msg'    => $message,
+        ];
+        if($flash)
+            $this->_query['flash'] = 1;
+        if($date)
+            $this->_query['jobdate'] = $date;
+        if($time)
+            $this->_query['jobtime'] = $time;
 
         $request = new Request(
             'GET',
             $this->_apiUrl.'/send',
             [
-                'query' => [
-                    'key'    => $this->_apiKey,
-                    'type'   => 9,
-                    'number' => $number,
-                    'msg'    => $message,
-                ],
+                'query' => $this->_query,
                 'Accept' => 'application/json',
             ]
         );
